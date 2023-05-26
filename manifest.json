@@ -1,0 +1,11 @@
+{
+	"id": "frontmatter-button-plugin",
+	"name": "Frontmatter Button",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "This plugin adds a button when hovering the note title that allows to you add the frontmatter to a note.",
+	"author": "Ryan",
+	"authorUrl": "https://obsidian.md",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false
+}
