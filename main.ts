@@ -1,67 +1,161 @@
 import {
+	App,
+	ButtonComponent,
+	MarkdownView,
+	Notice,
 	Plugin,
+	PluginSettingTab,
+	Setting,
 } from "obsidian";
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
+interface FrontmatterPluginSettings {
+	showButton: boolean;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
+const DEFAULT_SETTINGS: FrontmatterPluginSettings = {
+	showButton: true,
 };
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+const ROOT_WORKSPACE_CLASS = ".mod-vertical.mod-root";
 
-	addButton() {
-		const title = document.querySelector(".inline-title");
-		const buttonDiv = document.createElement("div");
-		buttonDiv.id = "button-div"
-		const button = document.createElement("button");
-		button.id = "header-button";
-		button.innerHTML = "Add Frontmatter";
-		buttonDiv.appendChild(button);
-		title?.addEventListener("mouseenter", () => {
-			if (!document.getElementById("header-button")) {
-				title?.after(buttonDiv);
-				buttonDiv?.addEventListener("mouseleave", () => {
-					buttonDiv.remove();
-				});
-			}
-		});
+export default class FrontmatterPlugin extends Plugin {
+	settings: FrontmatterPluginSettings;
+	windowSet: Set<Window> = new Set();
 
-		button.addEventListener("click", () => {
-			let editor = this.app.workspace.activeEditor?.editor;
-			let content = editor?.getValue();
-			if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
+	private createFrontmatterElement(
+		config: {
+			id: string;
+			className: string;
+			icon: string;
+			curWindow?: Window;
+		},
+		fn: () => void
+	) {
+		let topWidget = createEl("div");
+		topWidget.setAttribute("class", `div-${config.className}`);
+		topWidget.setAttribute("id", config.id);
+
+		let button = new ButtonComponent(topWidget);
+		button.setIcon(config.icon).setClass("buttonItem").onClick(fn);
+
+		let curWindow = config.curWindow || window;
+
+		curWindow.document.body
+			.querySelector(ROOT_WORKSPACE_CLASS)
+			?.insertAdjacentElement("afterbegin", topWidget);
+
+		curWindow.document.addEventListener("click", function (event) {
+			const activeLeaf = app.workspace.getActiveViewOfType(MarkdownView);
+
+			if (activeLeaf) {
+				topWidget.style.visibility = "visible";
 			} else {
-				let value = content?.replace(
-					/^.*/,
-					(match) => `---\n---\n${match}`
-				);
-				editor?.setValue(value!);
+				topWidget.style.visibility = "hidden";
 			}
 		});
 	}
-	cleanUp() {
-		const buttonDiv = document.getElementById("button-div")
-		buttonDiv?.remove()
+
+	public createButton(window?: Window) {
+		const { showButton } = this.settings;
+		if (showButton) {
+			this.createFrontmatterElement(
+				{
+					id: "_frontmatterButton",
+					className: "frontmatterButton",
+					icon: "search",
+					curWindow: window,
+				},
+				this.addFrontmatter.bind(this)
+			);
+		}
 	}
+
+	public removeButton(id: string, curWindow?: Window) {
+		let curWin = curWindow || window;
+		const element = curWin.document.getElementById(id);
+		if (element) {
+			element.remove();
+		}
+	}
+
+	private addFrontmatter() {
+		let editor = this.app.workspace.activeEditor?.editor;
+		let content = editor?.getValue();
+		if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
+		} else {
+			let value = content?.replace(
+				/^.*/,
+				(match) => `---\n---\n${match}`
+			);
+			editor?.setValue(value!);
+		}
+	}
+
+	// addButton() {
+	// 	//different version is have div alwasys there and button display: none
+	// 	//change button display on mouseover
+	// 	const title = document.querySelector(".inline-title");
+	// 	const buttonDiv = document.createElement("div");
+	// 	buttonDiv.id = "button-div";
+	// 	const button = document.createElement("button");
+	// 	button.id = "header-button";
+	// 	button.innerHTML = "Add Frontmatter";
+	// 	buttonDiv.appendChild(button);
+	// 	title?.addEventListener("mouseenter", () => {
+	// 		if (!document.getElementById("header-button")) {
+	// 			title?.before(buttonDiv);
+	// 			buttonDiv?.addEventListener("mouseleave", () => {
+	// 				buttonDiv.remove();
+	// 			});
+	// 		}
+	// 	});
+
+	// 	button.addEventListener("click", () => {
+	// 		let editor = this.app.workspace.activeEditor?.editor;
+	// 		let content = editor?.getValue();
+	// 		if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
+	// 		} else {
+	// 			let value = content?.replace(
+	// 				/^.*/,
+	// 				(match) => `---\n---\n${match}`
+	// 			);
+	// 			editor?.setValue(value!);
+	// 		}
+	// 	});
+	// }
+	// cleanUp() {
+	// 	const buttonDiv = document.getElementById("button-div");
+	// 	buttonDiv?.remove();
+	// }
 
 	async onload() {
 		await this.loadSettings();
+		this.addSettingTab(new FrontmatterSettingsTab(this.app, this));
+		this.app.workspace.onLayoutReady(() => {
+			this.createButton();
+		});
 
-		this.registerEvent(
-			this.app.workspace.on("active-leaf-change", () => {
-				this.cleanUp();
-				this.addButton();
-			})
-		);
+		this.app.workspace.on("window-open", (win, window) => {
+			this.windowSet.add(window);
+			this.createButton(window);
+		});
+		this.app.workspace.on("window-close", (win, window) => {
+			this.windowSet.delete(window);
+		});
+
+		// this.registerEvent(
+		// 	this.app.workspace.on("active-leaf-change", () => {
+		// 		this.cleanUp();
+		// 		this.addButton();
+		// 	})
+		// );
 	}
 
-	onunload() {}
+	onunload() {
+		this.removeButton("_frontmatterButton");
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -92,33 +186,35 @@ export default class MyPlugin extends Plugin {
 // 	}
 // }
 
-// class SampleSettingTab extends PluginSettingTab {
-// 	plugin: MyPlugin;
+class FrontmatterSettingsTab extends PluginSettingTab {
+	plugin: FrontmatterPlugin;
 
-// 	constructor(app: App, plugin: MyPlugin) {
-// 		super(app, plugin);
-// 		this.plugin = plugin;
-// 	}
+	constructor(app: App, plugin: FrontmatterPlugin) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
 
-// 	display(): void {
-// 		const { containerEl } = this;
+	rebuildButton() {
+		this.plugin.removeButton("_frontmatterButton");
+		this.plugin.createButton();
+	}
 
-// 		containerEl.empty();
+	display(): void {
+		const { containerEl } = this;
+		containerEl.empty();
+		containerEl.createEl("h2", { text: "Frontmatter Button Settings" });
 
-// 		containerEl.createEl("h2", { text: "Settings for my awesome plugin." });
-
-// 		new Setting(containerEl)
-// 			.setName("Setting #1")
-// 			.setDesc("It's a secret")
-// 			.addText((text) =>
-// 				text
-// 					.setPlaceholder("Enter your secret")
-// 					.setValue(this.plugin.settings.mySetting)
-// 					.onChange(async (value) => {
-// 						console.log("Secret: " + value);
-// 						this.plugin.settings.mySetting = value;
-// 						await this.plugin.saveSettings();
-// 					})
-// 			);
-// 	}
-// }
+		new Setting(containerEl)
+			.setName("Show frontmatter button")
+			.setDesc("Show frontmatter button above not title")
+			.addToggle((value) =>
+				value
+					.setValue(this.plugin.settings.showButton)
+					.onChange(async (value) => {
+						this.plugin.settings.showButton = value;
+						await this.plugin.saveSettings();
+						this.rebuildButton();
+					})
+			);
+	}
+}
