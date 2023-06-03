@@ -38,7 +38,9 @@ export default class FrontmatterPlugin extends Plugin {
 		topWidget.setAttribute("id", config.id);
 
 		let button = new ButtonComponent(topWidget);
-		button.setIcon(config.icon).setClass("buttonItem").onClick(fn);
+		button.setClass("buttonItem").onClick(fn);
+
+		button.buttonEl.innerHTML = config.icon;
 
 		let curWindow = config.curWindow || window;
 
@@ -64,7 +66,14 @@ export default class FrontmatterPlugin extends Plugin {
 				{
 					id: "_frontmatterButton",
 					className: "frontmatterButton",
-					icon: "search",
+					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M21 9L17 9" stroke="black" stroke-width="2" stroke-linecap="round"/>
+					<path d="M21 15L17 15" stroke="black" stroke-width="2" stroke-linecap="round"/>
+					<path d="M14 9H10" stroke="black" stroke-width="2" stroke-linecap="round"/>
+					<path d="M14 15H10" stroke="black" stroke-width="2" stroke-linecap="round"/>
+					<path d="M7 9H3" stroke="black" stroke-width="2" stroke-linecap="round"/>
+					<path d="M7 15H3" stroke="black" stroke-width="2" stroke-linecap="round"/>
+					</svg><text>Add Frontmatter</text>`,
 					curWindow: window,
 				},
 				this.addFrontmatter.bind(this)

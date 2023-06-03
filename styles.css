@@ -7,11 +7,16 @@ If your plugin does not need CSS, delete this file.
 
 */
 :root {
-	--scroll-to-top-top: 4.75em;
+	--scroll-to-top-top: 4.65em;
 	--scroll-to-top-right: 2.05em;
 	--scroll-input-width: 1.875em;
 	--scroll-to-top-width: var(--scroll-input-width);
 	--scroll-to-top-height: var(--scroll-input-width);
+}
+
+button > text {
+	margin-left: 5px;
+	font-size: 10pt;
 }
 
 .div-frontmatterButton {
@@ -39,7 +44,7 @@ If your plugin does not need CSS, delete this file.
 	margin: 2px;
 	border: none;
 	cursor: pointer;
-	padding: 5px 6px;
+	padding: 2px;
 	box-shadow: none;
 	margin-left: 3px;
 	margin-right: 3px;
