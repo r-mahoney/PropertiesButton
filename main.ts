@@ -48,15 +48,15 @@ export default class FrontmatterPlugin extends Plugin {
 			.querySelector(ROOT_WORKSPACE_CLASS)
 			?.insertAdjacentElement("afterbegin", topWidget);
 
-		curWindow.document.addEventListener("click", function (event) {
-			const activeLeaf = app.workspace.getActiveViewOfType(MarkdownView);
+		// curWindow.document.addEventListener("click", function (event) {
+		// 	const activeLeaf = app.workspace.getActiveViewOfType(MarkdownView);
 
-			if (activeLeaf) {
-				topWidget.style.visibility = "visible";
-			} else {
-				topWidget.style.visibility = "hidden";
-			}
-		});
+		// 	if (activeLeaf) {
+		// 		topWidget.style.visibility = "visible";
+		// 	} else {
+		topWidget.style.visibility = "hidden";
+		// 	}
+		// });
 	}
 
 	public createButton(window?: Window) {
@@ -102,43 +102,6 @@ export default class FrontmatterPlugin extends Plugin {
 		}
 	}
 
-	// addButton() {
-	// 	//different version is have div alwasys there and button display: none
-	// 	//change button display on mouseover
-	// 	const title = document.querySelector(".inline-title");
-	// 	const buttonDiv = document.createElement("div");
-	// 	buttonDiv.id = "button-div";
-	// 	const button = document.createElement("button");
-	// 	button.id = "header-button";
-	// 	button.innerHTML = "Add Frontmatter";
-	// 	buttonDiv.appendChild(button);
-	// 	title?.addEventListener("mouseenter", () => {
-	// 		if (!document.getElementById("header-button")) {
-	// 			title?.before(buttonDiv);
-	// 			buttonDiv?.addEventListener("mouseleave", () => {
-	// 				buttonDiv.remove();
-	// 			});
-	// 		}
-	// 	});
-
-	// 	button.addEventListener("click", () => {
-	// 		let editor = this.app.workspace.activeEditor?.editor;
-	// 		let content = editor?.getValue();
-	// 		if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
-	// 		} else {
-	// 			let value = content?.replace(
-	// 				/^.*/,
-	// 				(match) => `---\n---\n${match}`
-	// 			);
-	// 			editor?.setValue(value!);
-	// 		}
-	// 	});
-	// }
-	// cleanUp() {
-	// 	const buttonDiv = document.getElementById("button-div");
-	// 	buttonDiv?.remove();
-	// }
-
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new FrontmatterSettingsTab(this.app, this));
@@ -154,12 +117,52 @@ export default class FrontmatterPlugin extends Plugin {
 			this.windowSet.delete(window);
 		});
 
-		// this.registerEvent(
-		// 	this.app.workspace.on("active-leaf-change", () => {
-		// 		this.cleanUp();
-		// 		this.addButton();
-		// 	})
-		// );
+		this.registerEvent(
+			this.app.workspace.on("active-leaf-change", () => {
+				document.body
+					.querySelectorAll(
+						"body > div.app-container > div.horizontal-main-container > div > div.workspace-split.mod-vertical.mod-root > div.workspace-tabs.mod-top.mod-top-right-space.mod-active > div.workspace-tab-container > div"
+					)
+					.forEach((tab) => {
+						tab.querySelector(".inline-title")?.addEventListener(
+							"mouseenter",
+							() => {
+								const button =
+									document.getElementById(
+										"_frontmatterButton"
+									);
+								if (button) {
+									button.style.visibility = "visible";
+									button.addEventListener(
+										"mouseenter",
+										() => {
+											button.style.visibility = "visible";
+										}
+									);
+									button.addEventListener(
+										"mouseleave",
+										() => {
+											button.style.visibility = "hidden";
+										}
+									);
+								}
+							}
+						);
+						tab.querySelector(".inline-title")?.addEventListener(
+							"mouseleave",
+							() => {
+								const button =
+									document.getElementById(
+										"_frontmatterButton"
+									);
+								if (button) {
+									button.style.visibility = "hidden";
+								}
+							}
+						);
+					});
+			})
+		);
 	}
 
 	onunload() {
