@@ -6,20 +6,18 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
-:root {
-	--scroll-to-top-top: 4.65em;
-	--scroll-to-top-right: 2.05em;
-	--scroll-input-width: 1.875em;
-	--scroll-to-top-width: var(--scroll-input-width);
-	--scroll-to-top-height: var(--scroll-input-width);
-}
 
 button > text {
 	margin-left: 5px;
+	margin-bottom: 2px;
 	font-size: 10pt;
+	align-items: center;
+	justify-content: center;
 }
 
 .div-frontmatterButton {
+	width: 100%;
+	max-width: 700px;
     position:fixed;
 	top: 2em;
 	margin-top: 10px;
@@ -27,7 +25,6 @@ button > text {
 }
 
 #_frontmatterButton {
-	width: auto;
 	height: auto;
 	user-select: none;
 	transition: 200ms ease;
@@ -42,3 +39,4 @@ button > text {
 #_frontmatterButton button.buttonItem:hover {
 	background-color: rgba(128, 128, 128, 0.457);
 }
+

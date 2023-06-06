@@ -48,15 +48,8 @@ export default class FrontmatterPlugin extends Plugin {
 			.querySelector(ROOT_WORKSPACE_CLASS)
 			?.insertAdjacentElement("afterbegin", topWidget);
 
-		// curWindow.document.addEventListener("click", function (event) {
-		// 	const activeLeaf = app.workspace.getActiveViewOfType(MarkdownView);
-
-		// 	if (activeLeaf) {
-		// 		topWidget.style.visibility = "visible";
-		// 	} else {
 		topWidget.style.visibility = "hidden";
-		// 	}
-		// });
+
 	}
 
 	public createButton(window?: Window) {
@@ -66,7 +59,7 @@ export default class FrontmatterPlugin extends Plugin {
 				{
 					id: "_frontmatterButton",
 					className: "frontmatterButton",
-					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 					<path d="M21 9L17 9" stroke="black" stroke-width="2" stroke-linecap="round"/>
 					<path d="M21 15L17 15" stroke="black" stroke-width="2" stroke-linecap="round"/>
 					<path d="M14 9H10" stroke="black" stroke-width="2" stroke-linecap="round"/>
@@ -119,9 +112,10 @@ export default class FrontmatterPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
+				
 				document.body
 					.querySelectorAll(
-						"body > div.app-container > div.horizontal-main-container > div > div.workspace-split.mod-vertical.mod-root > div.workspace-tabs.mod-top.mod-top-right-space.mod-active > div.workspace-tab-container > div"
+						"body > div.app-container > div.horizontal-main-container > div > div.workspace-split.mod-vertical.mod-root > div.workspace-tabs > div.workspace-tab-container > div"
 					)
 					.forEach((tab) => {
 						tab.querySelector(".inline-title")?.addEventListener(
