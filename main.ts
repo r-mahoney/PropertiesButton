@@ -132,6 +132,12 @@ export default class FrontmatterPlugin extends Plugin {
 										"_frontmatterButton"
 									);
 								if (button) {
+									tab.querySelector(
+										".cm-sizer"
+									)?.insertAdjacentElement(
+										"afterbegin",
+										button
+									);
 									button.style.visibility = "visible";
 									button.addEventListener(
 										"mouseenter",
@@ -145,6 +151,20 @@ export default class FrontmatterPlugin extends Plugin {
 											button.style.visibility = "hidden";
 										}
 									);
+								} else {
+									this.createButton();
+									const button =
+										document.getElementById(
+											"_frontmatterButton"
+										);
+									if (button) {
+										tab.querySelector(
+											".cm-sizer"
+										)?.insertAdjacentElement(
+											"afterbegin",
+											button
+										);
+									}
 								}
 							}
 						);

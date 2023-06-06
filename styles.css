@@ -20,43 +20,25 @@ button > text {
 }
 
 .div-frontmatterButton {
-    position: absolute;
-	top: var(--scroll-to-top-top);
-	left: var(--scroll-to-top-right);
-	z-index: 99;
+    position:fixed;
+	top: 2em;
+	margin-top: 10px;
+	z-index: 150;
 }
 
 #_frontmatterButton {
 	width: auto;
 	height: auto;
-	padding: 3px;
-	display: grid;
 	user-select: none;
-	border-radius: 6px;
 	transition: 200ms ease;
 	min-width: fit-content;
 	justify-content: space-around;
-	z-index: var(--layer-status-bar);
 	box-shadow: 0px 3px 32px rgb(31 38 135 / 15%);
-	border: 1px solid var(--background-modifier-border);
 }
 #_frontmatterButton .buttonItem {
-	margin: 2px;
-	border: none;
 	cursor: pointer;
-	padding: 2px;
-	box-shadow: none;
-	margin-left: 3px;
-	margin-right: 3px;
-	border-radius: 3px;
-	/* width: var(--scroll-to-top-width);
-	height: var(--scroll-to-top-height); */
-	width: auto;
-	height: auto;
-	font-size: initial !important;
-	background-color: var(--background-primary-alt);
 }
 
 #_frontmatterButton button.buttonItem:hover {
-	background-color: var(--background-secondary);
+	background-color: rgba(128, 128, 128, 0.457);
 }
