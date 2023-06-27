@@ -30,7 +30,7 @@ button > text {
 	transition: 200ms ease;
 	min-width: fit-content;
 	justify-content: space-around;
-	box-shadow: 0px 3px 32px rgb(31 38 135 / 15%);
+	/* box-shadow: 0px 3px 32px rgb(31 38 135 / 15%); */
 }
 #_frontmatterButton .buttonItem {
 	cursor: pointer;
@@ -40,3 +40,6 @@ button > text {
 	background-color: rgba(128, 128, 128, 0.457);
 }
 
+.frontmatterbutton {
+	color: white;
+}

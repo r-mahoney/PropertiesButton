@@ -48,7 +48,7 @@ export default class FrontmatterPlugin extends Plugin {
 			.querySelector(ROOT_WORKSPACE_CLASS)
 			?.insertAdjacentElement("afterbegin", topWidget);
 
-		topWidget.style.visibility = "hidden";
+		topWidget.style.opacity = "0";
 
 	}
 
@@ -59,7 +59,7 @@ export default class FrontmatterPlugin extends Plugin {
 				{
 					id: "_frontmatterButton",
 					className: "frontmatterButton",
-					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M21 9L17 9" stroke="black" stroke-width="2" stroke-linecap="round"/>
 					<path d="M21 15L17 15" stroke="black" stroke-width="2" stroke-linecap="round"/>
 					<path d="M14 9H10" stroke="black" stroke-width="2" stroke-linecap="round"/>
@@ -132,17 +132,17 @@ export default class FrontmatterPlugin extends Plugin {
 										"afterbegin",
 										button
 									);
-									button.style.visibility = "visible";
+									button.style.opacity = "1";
 									button.addEventListener(
 										"mouseenter",
 										() => {
-											button.style.visibility = "visible";
+											button.style.opacity = "1";
 										}
 									);
 									button.addEventListener(
 										"mouseleave",
 										() => {
-											button.style.visibility = "hidden";
+											button.style.opacity = "0";
 										}
 									);
 								} else {
@@ -170,7 +170,7 @@ export default class FrontmatterPlugin extends Plugin {
 										"_frontmatterButton"
 									);
 								if (button) {
-									button.style.visibility = "hidden";
+									button.style.opacity = "0";
 								}
 							}
 						);
@@ -244,3 +244,14 @@ class FrontmatterSettingsTab extends PluginSettingTab {
 			);
 	}
 }
+
+//for adding UI to page,
+	//since adding a div to a note adds it to every note, 
+	//were going to want a clean up to delete the ui when you leave a note
+	//and then probably rebuild the ui on the current note
+		//rebuilding should grab whats in the current notes frontmatter
+		//build ui with current notes frontamtter and general UI
+
+//hiding OG frontmatter
+	//its open by default, so we can grab the lines and anything in bewtween
+	//and add a display:hidden and then grab indicator and add display: hidden
