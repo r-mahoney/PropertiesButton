@@ -2,7 +2,6 @@ import {
 	App,
 	ButtonComponent,
 	MarkdownView,
-	Notice,
 	Plugin,
 	PluginSettingTab,
 	Setting,
@@ -49,10 +48,64 @@ export default class FrontmatterPlugin extends Plugin {
 			?.insertAdjacentElement("afterbegin", topWidget);
 
 		topWidget.style.opacity = "0";
-
 	}
 
-	public createButton(window?: Window) {
+	private createUIElement(config: {
+		id: string;
+		className: string;
+		curWindow?: Window;
+	}) {
+		const handleSubmit = (e: MouseEvent) => {
+			let editor = this.app.workspace.activeEditor?.editor;
+			let content = editor?.getValue();
+			let inputValue = (<HTMLInputElement>(
+				document.getElementsByClassName("keyValueInput")[0]
+			)).value;
+			if(content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
+				let newContent = content?.replace(
+					/(---)(\s*[\s\S]*?\s*)(---)/, `$1$2${inputValue}\n$1`
+				);
+				editor?.setValue(newContent);
+			}
+			let keyValueInput = (<HTMLInputElement>document.getElementById("keyValueInput"));
+			keyValueInput.value = "";
+			e.preventDefault();
+		};
+
+		let active = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (active) {
+			const noteFile = this.app.workspace.getActiveFile();
+			if (!noteFile) return;
+
+			const ui = active.contentEl.querySelector(".div-uiElement");
+			const frontmatter =
+				app.metadataCache.getFileCache(noteFile)?.frontmatter;
+			if (!ui) {
+				let uiElement = createEl("div");
+				uiElement.setAttribute("class", `div-${config.className}`);
+				uiElement.setAttribute("id", config.id);
+				let title = active.contentEl.querySelector(".inline-title");
+				uiElement.innerHTML = `<form class="FMForm"><input type='text' class="keyValueInput" id="keyValueInput"
+					style={{width: "50%", height: "15px"}}></input><button type="submit">Add Key: Value</button></form><div class="yamlContainer"></div>`;
+
+				if (frontmatter) {
+					const yamlContainer =
+						uiElement.querySelector(".yamlContainer");
+					const entries = Object.entries(frontmatter);
+					entries.forEach(([key, value]) => {
+						if (key !== "position") {
+							yamlContainer!.innerHTML += `<div>${key}: ${value}</div>`;
+						}
+					});
+				}
+				const form = uiElement.querySelector(".FMForm");
+				form?.addEventListener("submit", handleSubmit);
+				title?.insertAdjacentElement("afterend", uiElement);
+			}
+		}
+	}
+
+	public createElements(window?: Window) {
 		const { showButton } = this.settings;
 		if (showButton) {
 			this.createFrontmatterElement(
@@ -99,12 +152,12 @@ export default class FrontmatterPlugin extends Plugin {
 		await this.loadSettings();
 		this.addSettingTab(new FrontmatterSettingsTab(this.app, this));
 		this.app.workspace.onLayoutReady(() => {
-			this.createButton();
+			this.createElements();
 		});
 
 		this.app.workspace.on("window-open", (win, window) => {
 			this.windowSet.add(window);
-			this.createButton(window);
+			this.createElements(window);
 		});
 		this.app.workspace.on("window-close", (win, window) => {
 			this.windowSet.delete(window);
@@ -112,69 +165,69 @@ export default class FrontmatterPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
-				
-				document.body
-					.querySelectorAll(
-						"body > div.app-container > div.horizontal-main-container > div > div.workspace-split.mod-vertical.mod-root > div.workspace-tabs > div.workspace-tab-container > div"
-					)
-					.forEach((tab) => {
-						tab.querySelector(".inline-title")?.addEventListener(
-							"mouseenter",
-							() => {
-								const button =
-									document.getElementById(
-										"_frontmatterButton"
-									);
-								if (button) {
-									tab.querySelector(
-										".cm-sizer"
-									)?.insertAdjacentElement(
+				let active =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				// document.body
+				// 	.querySelectorAll(
+				// 		"body > div.app-container > div.horizontal-main-container > div > div.workspace-split.mod-vertical.mod-root > div.workspace-tabs > div.workspace-tab-container > div"
+				// 	)
+				// 	.forEach((tab) => {
+				if (active) {
+					active.contentEl
+						.querySelector(".inline-title")
+						?.addEventListener("mouseenter", () => {
+							const button =
+								document.getElementById("_frontmatterButton");
+							if (button) {
+								active!.contentEl
+									.querySelector(".cm-sizer")
+									?.insertAdjacentElement(
 										"afterbegin",
 										button
 									);
+								button.style.opacity = "1";
+								button.addEventListener("mouseenter", () => {
 									button.style.opacity = "1";
-									button.addEventListener(
-										"mouseenter",
-										() => {
-											button.style.opacity = "1";
-										}
-									);
-									button.addEventListener(
-										"mouseleave",
-										() => {
-											button.style.opacity = "0";
-										}
-									);
-								} else {
-									this.createButton();
-									const button =
-										document.getElementById(
-											"_frontmatterButton"
-										);
-									if (button) {
-										tab.querySelector(
-											".cm-sizer"
-										)?.insertAdjacentElement(
-											"afterbegin",
-											button
-										);
-									}
-								}
-							}
-						);
-						tab.querySelector(".inline-title")?.addEventListener(
-							"mouseleave",
-							() => {
+								});
+								button.addEventListener("mouseleave", () => {
+									button.style.opacity = "0";
+								});
+							} else {
+								this.createElements();
 								const button =
 									document.getElementById(
 										"_frontmatterButton"
 									);
 								if (button) {
-									button.style.opacity = "0";
+									active!.contentEl
+										.querySelector(".cm-sizer")
+										?.insertAdjacentElement(
+											"afterbegin",
+											button
+										);
 								}
 							}
-						);
-					});
+						});
+					active.contentEl
+						.querySelector(".inline-title")
+						?.addEventListener("mouseleave", () => {
+							const button =
+								document.getElementById("_frontmatterButton");
+							if (button) {
+								button.style.opacity = "0";
+							}
+						});
+				}
+				// });
+			})
+		);
+
+		this.registerEvent(
+			this.app.workspace.on("active-leaf-change", () => {
+				this.createUIElement({
+					id: "_uiElement",
+					className: "uiElement",
+				});
 			})
 		);
 	}
@@ -220,9 +273,9 @@ class FrontmatterSettingsTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	rebuildButton() {
+	rebuildElements() {
 		this.plugin.removeButton("_frontmatterButton");
-		this.plugin.createButton();
+		this.plugin.createElements();
 	}
 
 	display(): void {
@@ -239,19 +292,19 @@ class FrontmatterSettingsTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.showButton = value;
 						await this.plugin.saveSettings();
-						this.rebuildButton();
+						this.rebuildElements();
 					})
 			);
 	}
 }
 
 //for adding UI to page,
-	//since adding a div to a note adds it to every note, 
-	//were going to want a clean up to delete the ui when you leave a note
-	//and then probably rebuild the ui on the current note
-		//rebuilding should grab whats in the current notes frontmatter
-		//build ui with current notes frontamtter and general UI
+//since adding a div to a note adds it to every note,
+//were going to want a clean up to delete the ui when you leave a note
+//and then probably rebuild the ui on the current note
+//rebuilding should grab whats in the current notes frontmatter
+//build ui with current notes frontamtter and general UI
 
 //hiding OG frontmatter
-	//its open by default, so we can grab the lines and anything in bewtween
-	//and add a display:hidden and then grab indicator and add display: hidden
+//its open by default, so we can grab the lines and anything in bewtween
+//and add a display:hidden and then grab indicator and add display: hidden

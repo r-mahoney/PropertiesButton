@@ -21,7 +21,7 @@ button > text {
     position:fixed;
 	top: 2em;
 	margin-top: 10px;
-	z-index: 150;
+	z-index: 1;
 }
 
 #_frontmatterButton {
@@ -42,4 +42,37 @@ button > text {
 
 .frontmatterbutton {
 	color: white;
+}
+
+.div-uiElement {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	max-width: 700px;
+	min-height: 50px;
+	height: auto;
+	border-radius: 10px 10px 10px 10px;
+	border: 1px solid white;
+	position: absolute;
+	top: 4rem;
+	padding: 10px;
+}
+
+.cm-contentContainer {
+	padding-top: 50px;
+}
+
+.yamlContainer {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	width: 100%;
+}
+
+.yamlContainer > div {
+	width: 25%;
+}
+
+.FMForm > button {
+	margin-left: 10px;
 }
