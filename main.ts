@@ -61,13 +61,16 @@ export default class FrontmatterPlugin extends Plugin {
 			let inputValue = (<HTMLInputElement>(
 				document.getElementsByClassName("keyValueInput")[0]
 			)).value;
-			if(content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
+			if (content?.search(/---\s*[\s\S]*?\s*---/) === 0 && inputValue) {
 				let newContent = content?.replace(
-					/(---)(\s*[\s\S]*?\s*)(---)/, `$1$2${inputValue}\n$1`
+					/(---)(\s*[\s\S]*?\s*)(---)/,
+					`$1$2${inputValue}\n$1`
 				);
 				editor?.setValue(newContent);
 			}
-			let keyValueInput = (<HTMLInputElement>document.getElementById("keyValueInput"));
+			let keyValueInput = <HTMLInputElement>(
+				document.getElementById("keyValueInput")
+			);
 			keyValueInput.value = "";
 			e.preventDefault();
 		};
@@ -224,10 +227,20 @@ export default class FrontmatterPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
-				this.createUIElement({
-					id: "_uiElement",
-					className: "uiElement",
-				});
+				let active =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (document.getElementById("_uiElement")) {
+					this.removeButton("_uiElement");
+					this.createUIElement({
+						id: "_uiElement",
+						className: "uiElement",
+					});
+				} else {
+					this.createUIElement({
+						id: "_uiElement",
+						className: "uiElement",
+					});
+				}
 			})
 		);
 	}
