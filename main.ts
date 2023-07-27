@@ -11,10 +11,12 @@ import {
 
 interface FrontmatterPluginSettings {
 	showButton: boolean;
+	showUI: boolean;
 }
 
 const DEFAULT_SETTINGS: FrontmatterPluginSettings = {
 	showButton: true,
+	showUI: false,
 };
 
 const ROOT_WORKSPACE_CLASS = ".mod-vertical.mod-root";
@@ -55,7 +57,9 @@ export default class FrontmatterPlugin extends Plugin {
 		className: string;
 		curWindow?: Window;
 	}) {
+		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
 		const handleSubmit = (e: MouseEvent) => {
+			e.preventDefault();
 			let editor = this.app.workspace.activeEditor?.editor;
 			let content = editor?.getValue();
 			let inputValue = (<HTMLInputElement>(
@@ -71,23 +75,24 @@ export default class FrontmatterPlugin extends Plugin {
 			let keyValueInput = <HTMLInputElement>(
 				document.getElementById("keyValueInput")
 			);
+			active!.contentEl.querySelector(
+				".yamlContainer"
+			)!.innerHTML += `<div>${inputValue}</div>`;
 			keyValueInput.value = "";
-			e.preventDefault();
 		};
 
-		let active = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (active) {
 			const noteFile = this.app.workspace.getActiveFile();
+			const ui = active.contentEl.querySelector(".div-uiElement");
 			if (!noteFile) return;
 
-			const ui = active.contentEl.querySelector(".div-uiElement");
 			const frontmatter =
 				app.metadataCache.getFileCache(noteFile)?.frontmatter;
 			if (!ui) {
-				let uiElement = createEl("div");
+				const uiElement = createEl("div");
 				uiElement.setAttribute("class", `div-${config.className}`);
 				uiElement.setAttribute("id", config.id);
-				let title = active.contentEl.querySelector(".inline-title");
+				const title = active.contentEl.querySelector(".inline-title");
 				uiElement.innerHTML = `<form class="FMForm"><input type='text' class="keyValueInput" id="keyValueInput"
 					style={{width: "50%", height: "15px"}}></input><button type="submit">Add Key: Value</button></form><div class="yamlContainer"></div>`;
 
@@ -104,12 +109,20 @@ export default class FrontmatterPlugin extends Plugin {
 				const form = uiElement.querySelector(".FMForm");
 				form?.addEventListener("submit", handleSubmit);
 				title?.insertAdjacentElement("afterend", uiElement);
+				const content =
+					active.contentEl.querySelectorAll<HTMLElement>(
+						".cm-content"
+					)[0];
+				content.style.paddingTop = "43px";
 			}
 		}
 	}
 
 	public createElements(window?: Window) {
-		const { showButton } = this.settings;
+		const { showButton, showUI } = this.settings;
+		const content = this.app.workspace
+			.getActiveViewOfType(MarkdownView)
+			?.contentEl.querySelectorAll<HTMLElement>(".cm-content")[0];
 		if (showButton) {
 			this.createFrontmatterElement(
 				{
@@ -128,6 +141,16 @@ export default class FrontmatterPlugin extends Plugin {
 				this.addFrontmatter.bind(this)
 			);
 		}
+		if (showUI) {
+			this.createUIElement({
+				id: "_uiElement",
+				className: "uiElement",
+			});
+			content!.style.paddingTop = "43px";
+		}
+		if (!showUI) {
+			content!.style.paddingTop = "0";
+		}
 	}
 
 	public removeButton(id: string, curWindow?: Window) {
@@ -139,6 +162,13 @@ export default class FrontmatterPlugin extends Plugin {
 	}
 
 	private addFrontmatter() {
+		const { showUI } = this.settings;
+		if (showUI) {
+			this.createUIElement({
+				id: "_uiElement",
+				className: "uiElement",
+			});
+		}
 		let editor = this.app.workspace.activeEditor?.editor;
 		let content = editor?.getValue();
 		if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
@@ -170,11 +200,6 @@ export default class FrontmatterPlugin extends Plugin {
 			this.app.workspace.on("active-leaf-change", () => {
 				let active =
 					this.app.workspace.getActiveViewOfType(MarkdownView);
-				// document.body
-				// 	.querySelectorAll(
-				// 		"body > div.app-container > div.horizontal-main-container > div > div.workspace-split.mod-vertical.mod-root > div.workspace-tabs > div.workspace-tab-container > div"
-				// 	)
-				// 	.forEach((tab) => {
 				if (active) {
 					active.contentEl
 						.querySelector(".inline-title")
@@ -221,25 +246,38 @@ export default class FrontmatterPlugin extends Plugin {
 							}
 						});
 				}
-				// });
 			})
 		);
 
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
+				const { showUI } = this.settings;
 				let active =
 					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (document.getElementById("_uiElement")) {
-					this.removeButton("_uiElement");
-					this.createUIElement({
-						id: "_uiElement",
-						className: "uiElement",
-					});
-				} else {
-					this.createUIElement({
-						id: "_uiElement",
-						className: "uiElement",
-					});
+				let editor = this.app.workspace.activeEditor?.editor;
+				let content = editor?.getValue();
+				if (active && showUI) {
+					if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
+						if (document.getElementById("_uiElement")) {
+							this.removeButton("_uiElement");
+							this.createUIElement({
+								id: "_uiElement",
+								className: "uiElement",
+							});
+						} else {
+							this.createUIElement({
+								id: "_uiElement",
+								className: "uiElement",
+							});
+						}
+					} else {
+						this.removeButton("_uiElement");
+						const content =
+							active.contentEl.querySelectorAll<HTMLElement>(
+								".cm-content"
+							)[0];
+						content.style.paddingTop = "0";
+					}
 				}
 			})
 		);
@@ -247,6 +285,7 @@ export default class FrontmatterPlugin extends Plugin {
 
 	onunload() {
 		this.removeButton("_frontmatterButton");
+		this.removeButton("_uiElement");
 	}
 
 	async loadSettings() {
@@ -286,8 +325,8 @@ class FrontmatterSettingsTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	rebuildElements() {
-		this.plugin.removeButton("_frontmatterButton");
+	rebuildElements(element: string) {
+		this.plugin.removeButton(element);
 		this.plugin.createElements();
 	}
 
@@ -298,14 +337,26 @@ class FrontmatterSettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Show frontmatter button")
-			.setDesc("Show frontmatter button above not title")
+			.setDesc("Show frontmatter button above note title")
 			.addToggle((value) =>
 				value
 					.setValue(this.plugin.settings.showButton)
 					.onChange(async (value) => {
 						this.plugin.settings.showButton = value;
 						await this.plugin.saveSettings();
-						this.rebuildElements();
+						this.rebuildElements("_frontmatterButton");
+					})
+			);
+		new Setting(containerEl)
+			.setName("Show frontmatter UI")
+			.setDesc("Show frontmatter UI below note title")
+			.addToggle((value) =>
+				value
+					.setValue(this.plugin.settings.showUI)
+					.onChange(async (value) => {
+						this.plugin.settings.showUI = value;
+						await this.plugin.saveSettings();
+						this.rebuildElements("_uiElement");
 					})
 			);
 	}

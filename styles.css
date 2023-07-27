@@ -59,10 +59,6 @@ button > text {
 	margin-top: 7px;
 }
 
-.cm-contentContainer {
-	padding-top: 50px;
-}
-
 .yamlContainer {
 	display: flex;
 	flex-wrap: wrap;
