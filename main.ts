@@ -7,16 +7,12 @@ import {
 	Setting,
 } from "obsidian";
 
-// Remember to rename these classes and interfaces!
-
 interface FrontmatterPluginSettings {
 	showButton: boolean;
-	showUI: boolean;
 }
 
 const DEFAULT_SETTINGS: FrontmatterPluginSettings = {
 	showButton: true,
-	showUI: false,
 };
 
 const ROOT_WORKSPACE_CLASS = ".mod-vertical.mod-root";
@@ -54,6 +50,7 @@ export default class FrontmatterPlugin extends Plugin {
 
 	public createElements(window?: Window) {
 		const { showButton } = this.settings;
+		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (showButton) {
 			this.createFrontmatterElement(
 				{
@@ -66,10 +63,10 @@ export default class FrontmatterPlugin extends Plugin {
 					<path d="M14 15H10" stroke="black" stroke-width="2" stroke-linecap="round"/>
 					<path d="M7 9H3" stroke="black" stroke-width="2" stroke-linecap="round"/>
 					<path d="M7 15H3" stroke="black" stroke-width="2" stroke-linecap="round"/>
-					</svg><text>Add Frontmatter</text>`,
+					</svg><text>Toggle Properties</text>`,
 					curWindow: window,
 				},
-				this.addProperties.bind(this)
+				this.toggleProperties.bind(this)
 			);
 		}
 	}
@@ -82,33 +79,18 @@ export default class FrontmatterPlugin extends Plugin {
 		}
 	}
 
-	private addFrontmatter() {
-		const { showUI } = this.settings;
-		if (showUI) {
-			this.createUIElement({
-				id: "_uiElement",
-				className: "uiElement",
-			});
-		}
-		let editor = this.app.workspace.activeEditor?.editor;
-		let content = editor?.getValue();
-		if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
-		} else {
-			let value = content?.replace(
-				/^.*/,
-				(match) => `---\n---\n${match}`
+	private toggleProperties() {
+		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (active) {
+			const properties = active.contentEl.querySelector(
+				".metadata-container"
 			);
-			editor?.setValue(value!);
+			if (properties?.getAttribute("style") === "display: block") {
+				properties?.setAttribute("style", "display: none");
+			} else {
+				properties?.setAttribute("style", "display: block");
+			}
 		}
-	}
-
-	private addProperties() {
-		let active = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if(active) {
-			let properties = active.contentEl.querySelector(".metadata-container")
-			properties?.setAttribute("style", "display: block")
-		}
-
 	}
 
 	async onload() {
@@ -182,7 +164,6 @@ export default class FrontmatterPlugin extends Plugin {
 
 	onunload() {
 		this.removeButton("_frontmatterButton");
-		this.removeButton("_uiElement");
 	}
 
 	async loadSettings() {
