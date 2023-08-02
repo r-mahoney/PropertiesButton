@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "properties-plugin",
+	"version": "2.0.0",
+	"description": "This plugin adds a button when hovering the note title that allows to you toggle the properties in a note.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
