@@ -52,77 +52,8 @@ export default class FrontmatterPlugin extends Plugin {
 		topWidget.style.opacity = "0";
 	}
 
-	private createUIElement(config: {
-		id: string;
-		className: string;
-		curWindow?: Window;
-	}) {
-		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
-		const handleSubmit = (e: MouseEvent) => {
-			e.preventDefault();
-			let editor = this.app.workspace.activeEditor?.editor;
-			let content = editor?.getValue();
-			let inputValue = (<HTMLInputElement>(
-				document.getElementsByClassName("keyValueInput")[0]
-			)).value;
-			if (content?.search(/---\s*[\s\S]*?\s*---/) === 0 && inputValue) {
-				let newContent = content?.replace(
-					/(---)(\s*[\s\S]*?\s*)(---)/,
-					`$1$2${inputValue}\n$1`
-				);
-				editor?.setValue(newContent);
-			}
-			let keyValueInput = <HTMLInputElement>(
-				document.getElementById("keyValueInput")
-			);
-			active!.contentEl.querySelector(
-				".yamlContainer"
-			)!.innerHTML += `<div>${inputValue}</div>`;
-			keyValueInput.value = "";
-		};
-
-		if (active) {
-			const noteFile = this.app.workspace.getActiveFile();
-			const ui = active.contentEl.querySelector(".div-uiElement");
-			if (!noteFile) return;
-
-			const frontmatter =
-				app.metadataCache.getFileCache(noteFile)?.frontmatter;
-			if (!ui) {
-				const uiElement = createEl("div");
-				uiElement.setAttribute("class", `div-${config.className}`);
-				uiElement.setAttribute("id", config.id);
-				const title = active.contentEl.querySelector(".inline-title");
-				uiElement.innerHTML = `<form class="FMForm"><input type='text' class="keyValueInput" id="keyValueInput"
-					style={{width: "50%", height: "15px"}}></input><button type="submit">Add Key: Value</button></form><div class="yamlContainer"></div>`;
-
-				if (frontmatter) {
-					const yamlContainer =
-						uiElement.querySelector(".yamlContainer");
-					const entries = Object.entries(frontmatter);
-					entries.forEach(([key, value]) => {
-						if (key !== "position") {
-							yamlContainer!.innerHTML += `<div>${key}: ${value}</div>`;
-						}
-					});
-				}
-				const form = uiElement.querySelector(".FMForm");
-				form?.addEventListener("submit", handleSubmit);
-				title?.insertAdjacentElement("afterend", uiElement);
-				const content =
-					active.contentEl.querySelectorAll<HTMLElement>(
-						".cm-content"
-					)[0];
-				content.style.paddingTop = "43px";
-			}
-		}
-	}
-
 	public createElements(window?: Window) {
-		const { showButton, showUI } = this.settings;
-		const content = this.app.workspace
-			.getActiveViewOfType(MarkdownView)
-			?.contentEl.querySelectorAll<HTMLElement>(".cm-content")[0];
+		const { showButton } = this.settings;
 		if (showButton) {
 			this.createFrontmatterElement(
 				{
@@ -138,18 +69,8 @@ export default class FrontmatterPlugin extends Plugin {
 					</svg><text>Add Frontmatter</text>`,
 					curWindow: window,
 				},
-				this.addFrontmatter.bind(this)
+				this.addProperties.bind(this)
 			);
-		}
-		if (showUI) {
-			this.createUIElement({
-				id: "_uiElement",
-				className: "uiElement",
-			});
-			content!.style.paddingTop = "43px";
-		}
-		if (!showUI) {
-			content!.style.paddingTop = "0";
 		}
 	}
 
@@ -179,6 +100,15 @@ export default class FrontmatterPlugin extends Plugin {
 			);
 			editor?.setValue(value!);
 		}
+	}
+
+	private addProperties() {
+		let active = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if(active) {
+			let properties = active.contentEl.querySelector(".metadata-container")
+			properties?.setAttribute("style", "display: block")
+		}
+
 	}
 
 	async onload() {
@@ -248,39 +178,6 @@ export default class FrontmatterPlugin extends Plugin {
 				}
 			})
 		);
-
-		this.registerEvent(
-			this.app.workspace.on("active-leaf-change", () => {
-				const { showUI } = this.settings;
-				let active =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				let editor = this.app.workspace.activeEditor?.editor;
-				let content = editor?.getValue();
-				if (active && showUI) {
-					if (content?.search(/---\s*[\s\S]*?\s*---/) === 0) {
-						if (document.getElementById("_uiElement")) {
-							this.removeButton("_uiElement");
-							this.createUIElement({
-								id: "_uiElement",
-								className: "uiElement",
-							});
-						} else {
-							this.createUIElement({
-								id: "_uiElement",
-								className: "uiElement",
-							});
-						}
-					} else {
-						this.removeButton("_uiElement");
-						const content =
-							active.contentEl.querySelectorAll<HTMLElement>(
-								".cm-content"
-							)[0];
-						content.style.paddingTop = "0";
-					}
-				}
-			})
-		);
 	}
 
 	onunload() {
@@ -300,22 +197,6 @@ export default class FrontmatterPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 }
-
-// class SampleModal extends Modal {
-// 	constructor(app: App) {
-// 		super(app);
-// 	}
-
-// 	onOpen() {
-// 		const { contentEl } = this;
-// 		contentEl.setText("Woah!");
-// 	}
-
-// 	onClose() {
-// 		const { contentEl } = this;
-// 		contentEl.empty();
-// 	}
-// }
 
 class FrontmatterSettingsTab extends PluginSettingTab {
 	plugin: FrontmatterPlugin;
@@ -347,28 +228,5 @@ class FrontmatterSettingsTab extends PluginSettingTab {
 						this.rebuildElements("_frontmatterButton");
 					})
 			);
-		new Setting(containerEl)
-			.setName("Show frontmatter UI")
-			.setDesc("Show frontmatter UI below note title")
-			.addToggle((value) =>
-				value
-					.setValue(this.plugin.settings.showUI)
-					.onChange(async (value) => {
-						this.plugin.settings.showUI = value;
-						await this.plugin.saveSettings();
-						this.rebuildElements("_uiElement");
-					})
-			);
 	}
 }
-
-//for adding UI to page,
-//since adding a div to a note adds it to every note,
-//were going to want a clean up to delete the ui when you leave a note
-//and then probably rebuild the ui on the current note
-//rebuilding should grab whats in the current notes frontmatter
-//build ui with current notes frontamtter and general UI
-
-//hiding OG frontmatter
-//its open by default, so we can grab the lines and anything in bewtween
-//and add a display:hidden and then grab indicator and add display: hidden
