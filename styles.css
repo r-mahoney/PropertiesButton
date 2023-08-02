@@ -15,7 +15,7 @@ button > text {
 	justify-content: center;
 }
 
-.div-frontmatterButton {
+.div-propertiesButton {
 	width: 100%;
 	max-width: 700px;
     position:fixed;
@@ -24,7 +24,7 @@ button > text {
 	z-index: 1;
 }
 
-#_frontmatterButton {
+#_propertiesButton {
 	height: auto;
 	user-select: none;
 	transition: 200ms ease;
@@ -32,15 +32,15 @@ button > text {
 	justify-content: space-around;
 	/* box-shadow: 0px 3px 32px rgb(31 38 135 / 15%); */
 }
-#_frontmatterButton .buttonItem {
+#_propertiesButton .buttonItem {
 	cursor: pointer;
 }
 
-#_frontmatterButton button.buttonItem:hover {
+#_propertiesButton button.buttonItem:hover {
 	background-color: rgba(128, 128, 128, 0.457);
 }
 
-.frontmatterbutton {
+.propertiesbutton {
 	color: white;
 }
 
