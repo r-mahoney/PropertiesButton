@@ -1,4 +1,4 @@
-<img width="980" alt="Add properties github cover" src="https://github.com/r-mahoney/FrontmatterButton/assets/46250921/597b32ad-edda-4815-9593-68c552a31811">
+<img width="980" alt="Add properties github cover" src="https://github.com/r-mahoney/PropertiesButton/assets/46250921/597b32ad-edda-4815-9593-68c552a31811">
 
 # Add Properties Button Plugin
 The 'Add properties' button plugin adds a button to [Obsidian](https://obsidian.md/) which allows the user to quickly add a properties menu to their note.
