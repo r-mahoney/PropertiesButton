@@ -85,7 +85,7 @@ export default class FrontmatterPlugin extends Plugin {
 			const properties = active.contentEl.querySelector(
 				".metadata-container"
 			);
-			if (properties?.getAttribute("style") === "display: block") {
+			if (getComputedStyle(properties!)?.display === "block") {
 				properties?.setAttribute("style", "display: none");
 			} else {
 				properties?.setAttribute("style", "display: block");
