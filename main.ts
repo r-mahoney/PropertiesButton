@@ -85,10 +85,21 @@ export default class PropertiesPlugin extends Plugin {
 			const properties = active.contentEl.querySelector(
 				".metadata-container"
 			);
-			if (getComputedStyle(properties!)?.display === "block") {
-				properties?.setAttribute("style", "display: none");
+			if (properties?.getAttribute("data-property-count") === "0") {
+				if (getComputedStyle(properties!)?.display === "block") {
+					properties?.removeAttribute("style");
+				} else {
+					properties?.setAttribute("style", "display: block");
+					this.app.commands.executeCommandById(
+						"markdown:add-metadata-property"
+					);
+				}
 			} else {
-				properties?.setAttribute("style", "display: block");
+				if (getComputedStyle(properties!)?.display === "block") {
+					properties?.setAttribute("style", "display: none");
+				} else {
+					properties?.setAttribute("style", "display: block");
+				}
 			}
 		}
 	}
@@ -160,6 +171,19 @@ export default class PropertiesPlugin extends Plugin {
 				}
 			})
 		);
+
+		this.registerEvent(
+			this.app.workspace.on("active-leaf-change", () => {
+				const active =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (active) {
+					const properties = active!.contentEl.querySelector(
+						".metadata-container"
+					);
+					properties?.setAttribute("style", "display: none");
+				}
+			})
+		);
 	}
 
 	onunload() {
@@ -195,7 +219,9 @@ class PropertiesSettingsTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Toggle Properties Button Settings" });
+		containerEl.createEl("h2", {
+			text: "Toggle Properties Button Settings",
+		});
 
 		new Setting(containerEl)
 			.setName("Show Toggle Properties Button")

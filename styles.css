@@ -15,6 +15,10 @@ button > text {
 	justify-content: center;
 }
 
+.show-prop {
+	display: block;
+}
+
 .div-propertiesButton {
 	width: 100%;
 	max-width: 700px;
