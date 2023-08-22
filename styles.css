@@ -1,12 +1,3 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
-
 button > text {
 	margin-left: 5px;
 	margin-bottom: 2px;
@@ -15,18 +6,55 @@ button > text {
 	justify-content: center;
 }
 
-.show-prop {
-	display: block;
-}
-
 .div-propertiesButton {
 	width: 100%;
 	max-width: 700px;
-    position:fixed;
-	top: 2em;
+	position: absolute;
+	top: -0.5em;
 	margin-top: 10px;
 	z-index: 1;
 }
+
+.buttonItem {
+	-webkit-app-region: no-drag;
+	display: inline-flex;
+	align-items: center;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	border-radius: var(--button-radius);
+	padding: var(--size-2-1) var(--size-4-3) var(--size-2-1) var(--size-4-2);
+	height: var(--input-height);
+	font-weight: var(--input-font-weight);
+	cursor: var(--cursor);
+	font-family: inherit;
+	gap: var(--size-2-2);
+	user-select: none;
+	white-space: nowrap;
+}
+
+button:not(.clickable-icon) {
+	background-color: var(--canvas-background);
+	box-shadow: none;
+}
+
+@media (hover: hover) {
+	.buttonItem:hover {
+		box-shadow: none;
+		opacity: var(--icon-opacity-hover);
+		background-color: var(--background-modifier-hover);
+		color: var(--text-normal);
+	}
+}
+
+.buttonItem:focus {
+	/* box-shadow: 0 0 0px 3px var(--background-modifier-border-focus); */
+	outline: none;
+}
+
+/* .buttonItem:active {
+	box-shadow: 0 0 0px 3px var(--background-modifier-border-focus);
+	outline: none;
+} */
 
 #_propertiesButton {
 	height: auto;
@@ -34,46 +62,8 @@ button > text {
 	transition: 200ms ease;
 	min-width: fit-content;
 	justify-content: space-around;
-	/* box-shadow: 0px 3px 32px rgb(31 38 135 / 15%); */
 }
+
 #_propertiesButton .buttonItem {
 	cursor: pointer;
-}
-
-#_propertiesButton button.buttonItem:hover {
-	background-color: rgba(128, 128, 128, 0.457);
-}
-
-.propertiesbutton {
-	color: white;
-}
-
-.div-uiElement {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	max-width: 700px;
-	min-height: 50px;
-	height: auto;
-	border-radius: 10px 10px 10px 10px;
-	border: 1px solid white;
-	position: absolute;
-	top: 4rem;
-	padding: 10px;
-	margin-top: 7px;
-}
-
-.yamlContainer {
-	display: flex;
-	flex-wrap: wrap;
-	flex-direction: row;
-	width: 100%;
-}
-
-.yamlContainer > div {
-	width: 25%;
-}
-
-.FMForm > button {
-	margin-left: 10px;
 }

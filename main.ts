@@ -1,4 +1,5 @@
 import {
+	addIcon,
 	App,
 	ButtonComponent,
 	MarkdownView,
@@ -38,7 +39,7 @@ export default class PropertiesPlugin extends Plugin {
 		button.setClass("buttonItem").onClick(fn);
 
 		button.buttonEl.innerHTML = config.icon;
-		// button.setIcon(config.icon)
+		// button.setIcon('equal')
 
 		let curWindow = config.curWindow || window;
 
@@ -56,13 +57,13 @@ export default class PropertiesPlugin extends Plugin {
 				{
 					id: "_propertiesButton",
 					className: "propertiesButton",
-					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<path d="M21 9L17 9" stroke="black" stroke-width="2" stroke-linecap="round"/>
-					<path d="M21 15L17 15" stroke="black" stroke-width="2" stroke-linecap="round"/>
-					<path d="M14 9H10" stroke="black" stroke-width="2" stroke-linecap="round"/>
-					<path d="M14 15H10" stroke="black" stroke-width="2" stroke-linecap="round"/>
-					<path d="M7 9H3" stroke="black" stroke-width="2" stroke-linecap="round"/>
-					<path d="M7 15H3" stroke="black" stroke-width="2" stroke-linecap="round"/>
+					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
+					<path d="M21 9L17 9" stroke-width="2" stroke-linecap="round"/>
+					<path d="M21 15L17 15" stroke-width="2" stroke-linecap="round"/>
+					<path d="M14 9H10" stroke-width="2" stroke-linecap="round"/>
+					<path d="M14 15H10" stroke-width="2" stroke-linecap="round"/>
+					<path d="M7 9H3" stroke-width="2" stroke-linecap="round"/>
+					<path d="M7 15H3" stroke-width="2" stroke-linecap="round"/>
 					</svg><text>Toggle Properties</text>`,
 					curWindow: window,
 				},
