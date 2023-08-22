@@ -47,14 +47,8 @@ button:not(.clickable-icon) {
 }
 
 .buttonItem:focus {
-	/* box-shadow: 0 0 0px 3px var(--background-modifier-border-focus); */
 	outline: none;
 }
-
-/* .buttonItem:active {
-	box-shadow: 0 0 0px 3px var(--background-modifier-border-focus);
-	outline: none;
-} */
 
 #_propertiesButton {
 	height: auto;

@@ -1,6 +1,6 @@
 {
 	"name": "properties-plugin",
-	"version": "2.3.2",
+	"version": "2.4.2",
 	"description": "This plugin adds a button when hovering the note title that allows to you toggle the properties in a note.",
 	"main": "main.js",
 	"scripts": {

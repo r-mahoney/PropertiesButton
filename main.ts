@@ -57,7 +57,7 @@ export default class PropertiesPlugin extends Plugin {
 				{
 					id: "_propertiesButton",
 					className: "propertiesButton",
-					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
+					icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" class="svg-icon">
 					<path d="M21 9L17 9" stroke-width="2" stroke-linecap="round"/>
 					<path d="M21 15L17 15" stroke-width="2" stroke-linecap="round"/>
 					<path d="M14 9H10" stroke-width="2" stroke-linecap="round"/>
