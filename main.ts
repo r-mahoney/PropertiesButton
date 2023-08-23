@@ -1,11 +1,10 @@
 import {
-	addIcon,
 	App,
 	ButtonComponent,
 	MarkdownView,
 	Plugin,
 	PluginSettingTab,
-	Setting,
+	Setting
 } from "obsidian";
 
 interface PropertiesPluginSettings {
@@ -21,6 +20,7 @@ const ROOT_WORKSPACE_CLASS = ".mod-vertical.mod-root";
 export default class PropertiesPlugin extends Plugin {
 	settings: PropertiesPluginSettings;
 	windowSet: Set<Window> = new Set();
+	fileProperties: Map<string, boolean> = new Map();
 
 	private createPropertiesElement(
 		config: {
@@ -39,7 +39,6 @@ export default class PropertiesPlugin extends Plugin {
 		button.setClass("buttonItem").onClick(fn);
 
 		button.buttonEl.innerHTML = config.icon;
-		// button.setIcon('equal')
 
 		let curWindow = config.curWindow || window;
 
@@ -82,6 +81,7 @@ export default class PropertiesPlugin extends Plugin {
 
 	private toggleProperties() {
 		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
+		const file = this.app.workspace.getActiveFile();
 		if (active) {
 			const properties = active.contentEl.querySelector(
 				".metadata-container"
@@ -89,8 +89,10 @@ export default class PropertiesPlugin extends Plugin {
 			if (properties?.getAttribute("data-property-count") === "0") {
 				if (getComputedStyle(properties!)?.display === "block") {
 					properties?.removeAttribute("style");
+					this.fileProperties.set(file!.name, false);
 				} else {
 					properties?.setAttribute("style", "display: block");
+					this.fileProperties.set(file!.name, true);
 					this.app.commands.executeCommandById(
 						"markdown:add-metadata-property"
 					);
@@ -98,8 +100,10 @@ export default class PropertiesPlugin extends Plugin {
 			} else {
 				if (getComputedStyle(properties!)?.display === "block") {
 					properties?.setAttribute("style", "display: none");
+					this.fileProperties.set(file!.name, false);
 				} else {
 					properties?.setAttribute("style", "display: block");
+					this.fileProperties.set(file!.name, true);
 				}
 			}
 		}
@@ -174,14 +178,23 @@ export default class PropertiesPlugin extends Plugin {
 		);
 
 		this.registerEvent(
-			this.app.workspace.on("active-leaf-change", () => {
+			this.app.workspace.on("file-open", () => {
 				const active =
 					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (active) {
-					const properties = active!.contentEl.querySelector(
-						".metadata-container"
-					);
-					properties?.setAttribute("style", "display: none");
+				const properties = active!.contentEl.querySelector(
+					".metadata-container"
+				);
+				const file = this.app.workspace.getActiveFile()?.name;
+				if (file && !this.fileProperties.has(file)) {
+					this.fileProperties.set(file, false);
+				}
+
+				if (file) {
+					if (this.fileProperties.get(file)) {
+						properties?.setAttribute("style", "display: block");
+					} else {
+						properties?.setAttribute("style", "display: none");
+					}
 				}
 			})
 		);
