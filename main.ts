@@ -112,7 +112,26 @@ export default class PropertiesPlugin extends Plugin {
 		}
 	}
 
-	private hideElements() {}
+	private showElement() {
+		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
+		const file = this.app.workspace.getActiveFile()?.name;
+		//@ts-ignore
+		const propertiesShown = this.app.vault.config.propertiesInDocument;
+		if (file && !this.fileProperties.has(file)) {
+			this.fileProperties.set(file, false);
+		}
+
+		if (file) {
+			const properties = active!.contentEl.querySelector(
+				".metadata-container"
+			);
+			if (this.fileProperties.get(file) && propertiesShown === "visible") {
+				properties?.setAttribute("style", "display: block");
+			} else {
+				properties?.setAttribute("style", "display: none");
+			}
+		}
+	}
 
 	async onload() {
 		await this.loadSettings();
@@ -184,49 +203,28 @@ export default class PropertiesPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("file-open", () => {
-				const active =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				const file = this.app.workspace.getActiveFile()?.name;
-				if (file && !this.fileProperties.has(file)) {
-					this.fileProperties.set(file, false);
-				}
-
-				if (file) {
-					const properties = active!.contentEl.querySelector(
-						".metadata-container"
-					);
-					if (this.fileProperties.get(file)) {
-						properties?.setAttribute("style", "display: block");
-					} else {
-						properties?.setAttribute("style", "display: none");
-					}
-				}
+				this.showElement();
 			})
 		);
 		this.registerEvent(
 			//@ts-ignore
 			this.app.vault.on("config-changed", () => {
-				const active =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				const file = this.app.workspace.getActiveFile()?.name;
-				if (file && !this.fileProperties.has(file)) {
-					this.fileProperties.set(file, false);
-				}
-
-				if (active) {
-					const properties = active!.contentEl.querySelector(
+				const leavesWithProperties =
+					this.app.workspace.containerEl.querySelectorAll(
 						".metadata-container"
 					);
-					if (
-						//@ts-ignore
-						this.app.vault.config.propertiesInDocument !== "visible"
-					) {
-						this.removeButton("_propertiesButton");
-						this.createElements();
-						properties?.setAttribute("style", "display: none");
-					} else {
-						this.createElements();
-					}
+
+				if (
+					//@ts-ignore
+					this.app.vault.config.propertiesInDocument !== "visible"
+				) {
+					this.removeButton("_propertiesButton");
+					leavesWithProperties.forEach((leaf) => {
+						leaf.setAttribute("style", "display: none");
+					});
+				} else {
+					this.createElements();
+					this.showElement();
 				}
 			})
 		);
