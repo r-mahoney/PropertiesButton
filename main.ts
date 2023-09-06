@@ -131,6 +131,7 @@ export default class PropertiesPlugin extends Plugin {
 				properties?.setAttribute("style", "display: none");
 			}
 		}
+		console.log(this.fileProperties)
 	}
 
 	async onload() {
