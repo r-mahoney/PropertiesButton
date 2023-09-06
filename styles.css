@@ -1,4 +1,4 @@
-button > text {
+.buttonItem > text {
 	/* margin-left: 5px;
 	margin-bottom: 2px; */
 	font-size: 10pt;
@@ -32,7 +32,7 @@ button > text {
 	white-space: nowrap;
 }
 
-button:not(.clickable-icon) {
+.buttonItem:not(.clickable-icon) {
 	background-color: var(--canvas-background);
 	box-shadow: none;
 }

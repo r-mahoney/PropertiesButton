@@ -4,7 +4,7 @@ import {
 	MarkdownView,
 	Plugin,
 	PluginSettingTab,
-	Setting
+	Setting,
 } from "obsidian";
 
 interface PropertiesPluginSettings {
@@ -51,7 +51,9 @@ export default class PropertiesPlugin extends Plugin {
 
 	public createElements(window?: Window) {
 		const { showButton } = this.settings;
-		if (showButton) {
+		//@ts-ignore
+		const showProperties = this.app.vault.config.propertiesInDocument;
+		if (showButton && showProperties === "visible") {
 			this.createPropertiesElement(
 				{
 					id: "_propertiesButton",
@@ -93,6 +95,7 @@ export default class PropertiesPlugin extends Plugin {
 				} else {
 					properties?.setAttribute("style", "display: block");
 					this.fileProperties.set(file!.name, true);
+					//@ts-ignore
 					this.app.commands.executeCommandById(
 						"markdown:add-metadata-property"
 					);
@@ -108,6 +111,8 @@ export default class PropertiesPlugin extends Plugin {
 			}
 		}
 	}
+
+	private hideElements() {}
 
 	async onload() {
 		await this.loadSettings();
@@ -181,19 +186,46 @@ export default class PropertiesPlugin extends Plugin {
 			this.app.workspace.on("file-open", () => {
 				const active =
 					this.app.workspace.getActiveViewOfType(MarkdownView);
-				const properties = active!.contentEl.querySelector(
-					".metadata-container"
-				);
 				const file = this.app.workspace.getActiveFile()?.name;
 				if (file && !this.fileProperties.has(file)) {
 					this.fileProperties.set(file, false);
 				}
 
 				if (file) {
+					const properties = active!.contentEl.querySelector(
+						".metadata-container"
+					);
 					if (this.fileProperties.get(file)) {
 						properties?.setAttribute("style", "display: block");
 					} else {
 						properties?.setAttribute("style", "display: none");
+					}
+				}
+			})
+		);
+		this.registerEvent(
+			//@ts-ignore
+			this.app.vault.on("config-changed", () => {
+				const active =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				const file = this.app.workspace.getActiveFile()?.name;
+				if (file && !this.fileProperties.has(file)) {
+					this.fileProperties.set(file, false);
+				}
+
+				if (active) {
+					const properties = active!.contentEl.querySelector(
+						".metadata-container"
+					);
+					if (
+						//@ts-ignore
+						this.app.vault.config.propertiesInDocument !== "visible"
+					) {
+						this.removeButton("_propertiesButton");
+						this.createElements();
+						properties?.setAttribute("style", "display: none");
+					} else {
+						this.createElements();
 					}
 				}
 			})
@@ -214,6 +246,7 @@ export default class PropertiesPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		await this.saveData(this.fileProperties);
 	}
 }
 
