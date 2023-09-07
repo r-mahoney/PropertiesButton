@@ -19,7 +19,6 @@ const ROOT_WORKSPACE_CLASS = ".mod-vertical.mod-root";
 
 export default class PropertiesPlugin extends Plugin {
 	settings: PropertiesPluginSettings;
-	windowSet: Set<Window> = new Set();
 	fileProperties: Map<string, boolean> = new Map();
 
 	private createPropertiesElement(
@@ -27,7 +26,6 @@ export default class PropertiesPlugin extends Plugin {
 			id: string;
 			className: string;
 			icon: string;
-			curWindow?: Window;
 		},
 		fn: () => void
 	) {
@@ -40,16 +38,14 @@ export default class PropertiesPlugin extends Plugin {
 
 		button.buttonEl.innerHTML = config.icon;
 
-		let curWindow = config.curWindow || window;
-
-		curWindow.document.body
+		document.body
 			.querySelector(ROOT_WORKSPACE_CLASS)
 			?.insertAdjacentElement("afterbegin", topWidget);
 
 		topWidget.style.opacity = "0";
 	}
 
-	public createElements(window?: Window) {
+	public createElements() {
 		const { showButton } = this.settings;
 		//@ts-ignore
 		const showProperties = this.app.vault.config.propertiesInDocument;
@@ -66,16 +62,14 @@ export default class PropertiesPlugin extends Plugin {
 					<path d="M7 9H3" stroke-width="2" stroke-linecap="round"/>
 					<path d="M7 15H3" stroke-width="2" stroke-linecap="round"/>
 					</svg><text>Toggle Properties</text>`,
-					curWindow: window,
 				},
 				this.toggleProperties.bind(this)
 			);
 		}
 	}
 
-	public removeButton(id: string, curWindow?: Window) {
-		let curWin = curWindow || window;
-		const element = curWin.document.getElementById(id);
+	public removeButton(id: string) {
+		const element = document.getElementById(id);
 		if (element) {
 			element.remove();
 		}
@@ -125,13 +119,15 @@ export default class PropertiesPlugin extends Plugin {
 			const properties = active!.contentEl.querySelector(
 				".metadata-container"
 			);
-			if (this.fileProperties.get(file) && propertiesShown === "visible") {
+			if (
+				this.fileProperties.get(file) &&
+				propertiesShown === "visible"
+			) {
 				properties?.setAttribute("style", "display: block");
 			} else {
 				properties?.setAttribute("style", "display: none");
 			}
 		}
-		console.log(this.fileProperties)
 	}
 
 	async onload() {
@@ -139,14 +135,6 @@ export default class PropertiesPlugin extends Plugin {
 		this.addSettingTab(new PropertiesSettingsTab(this.app, this));
 		this.app.workspace.onLayoutReady(() => {
 			this.createElements();
-		});
-
-		this.app.workspace.on("window-open", (win, window) => {
-			this.windowSet.add(window);
-			this.createElements(window);
-		});
-		this.app.workspace.on("window-close", (win, window) => {
-			this.windowSet.delete(window);
 		});
 
 		this.registerEvent(
@@ -201,7 +189,6 @@ export default class PropertiesPlugin extends Plugin {
 				}
 			})
 		);
-
 		this.registerEvent(
 			this.app.workspace.on("file-open", () => {
 				this.showElement();
@@ -229,6 +216,40 @@ export default class PropertiesPlugin extends Plugin {
 				}
 			})
 		);
+
+		this.addCommand({
+			id: "markdown:add-metadata-property",
+			name: "Add file property",
+			hotkeys: [{ modifiers: ["Mod", "Shift"], key: ";" }],
+			callback: () => {
+				const active =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (active) {
+					const properties = active.contentEl.querySelector(
+						".metadata-container"
+					);
+					if (getComputedStyle(properties!)?.display === "none") {
+						this.toggleProperties();
+					}
+					if (
+						properties?.getAttribute("data-property-count") !== "0"
+					) {
+						//@ts-ignore
+						this.app.commands.executeCommandById(
+							"markdown:add-metadata-property"
+						);
+					}
+				}
+			},
+		});
+		this.addCommand({
+			id: "toggle-file-properties",
+			name: "Toggle File Properties",
+			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "b" }],
+			callback: () => {
+				this.toggleProperties();
+			},
+		});
 	}
 
 	onunload() {

@@ -1,7 +1,7 @@
 {
 	"id": "properties-button-plugin",
 	"name": "Properties Button",
-	"version": "2.6.2",
+	"version": "2.7.2",
 	"minAppVersion": "0.15.0",
 	"description": "This plugin adds a button when hovering the note title that allows to you toggle the properties in a note.",
 	"author": "Ryan",
