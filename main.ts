@@ -82,6 +82,7 @@ export default class PropertiesPlugin extends Plugin {
 			const properties = active.contentEl.querySelector(
 				".metadata-container"
 			);
+			const button = document.getElementsByClassName("buttonItem")[0]
 			if (properties?.getAttribute("data-property-count") === "0") {
 				if (getComputedStyle(properties!)?.display === "block") {
 					properties?.removeAttribute("style");
@@ -103,6 +104,7 @@ export default class PropertiesPlugin extends Plugin {
 					this.fileProperties.set(file!.name, true);
 				}
 			}
+			console.log(button.textContent)
 		}
 	}
 
@@ -266,7 +268,6 @@ export default class PropertiesPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-		await this.saveData(this.fileProperties);
 	}
 }
 
