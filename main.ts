@@ -21,6 +21,20 @@ export default class PropertiesPlugin extends Plugin {
 	settings: PropertiesPluginSettings;
 	fileProperties: Map<string, boolean> = new Map();
 
+	private checkActive() {
+		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
+		return active;
+	}
+	private setFileProps(value: boolean) {
+		const file = this.app.workspace.getActiveFile();
+		this.fileProperties.set(file!.name, value);
+	}
+	private setOpacity(element: HTMLElement, opacity: string) {
+		return (element.style.opacity = opacity);
+	}
+	private setDisplay(element: Element, display: string) {
+		return element?.setAttribute("style", display);
+	}
 	private createPropertiesElement(
 		config: {
 			id: string;
@@ -32,17 +46,14 @@ export default class PropertiesPlugin extends Plugin {
 		let topWidget = createEl("div");
 		topWidget.setAttribute("class", `div-${config.className}`);
 		topWidget.setAttribute("id", config.id);
-
 		let button = new ButtonComponent(topWidget);
 		button.setClass("buttonItem").onClick(fn);
-
 		button.buttonEl.innerHTML = config.icon;
-
 		document.body
 			.querySelector(ROOT_WORKSPACE_CLASS)
 			?.insertAdjacentElement("afterbegin", topWidget);
 
-		topWidget.style.opacity = "0";
+		this.setOpacity(topWidget, "0");
 	}
 
 	public createElements() {
@@ -75,41 +86,67 @@ export default class PropertiesPlugin extends Plugin {
 		}
 	}
 
+	public unfoldProperties() {
+		const active = this.checkActive();
+		if (active) {
+			const isCollapsed = active.contentEl.querySelectorAll(
+				".metadata-container .is-collapsed"
+			);
+			if (isCollapsed.length) {
+				//@ts-ignore
+				this.app.commands.executeCommandById(
+					"editor:toggle-fold-properties"
+				);
+			}
+		}
+	}
+
 	private toggleProperties() {
-		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
-		const file = this.app.workspace.getActiveFile();
+		const active = this.checkActive();
+
 		if (active) {
 			const properties = active.contentEl.querySelector(
 				".metadata-container"
 			);
-			const button = document.getElementsByClassName("buttonItem")[0]
 			if (properties?.getAttribute("data-property-count") === "0") {
 				if (getComputedStyle(properties!)?.display === "block") {
-					properties?.removeAttribute("style");
-					this.fileProperties.set(file!.name, false);
+					this.setDisplay(properties, "display: none");
+					this.setFileProps(false);
 				} else {
-					properties?.setAttribute("style", "display: block");
-					this.fileProperties.set(file!.name, true);
+					this.setDisplay(properties!, "display: block");
+					this.setFileProps(true);
 					//@ts-ignore
 					this.app.commands.executeCommandById(
 						"markdown:add-metadata-property"
 					);
+					const input = active.contentEl.querySelector(
+						".metadata-property-key-input"
+					);
+					input?.addEventListener("focusout", () => {
+						if (
+							properties?.getAttribute("data-property-count") ===
+							"0"
+						) {
+							this.setDisplay(properties, "display: none");
+							this.setFileProps(false);
+						}
+					});
 				}
 			} else {
 				if (getComputedStyle(properties!)?.display === "block") {
-					properties?.setAttribute("style", "display: none");
-					this.fileProperties.set(file!.name, false);
+					this.setDisplay(properties!, "display: none");
+					this.setFileProps(false);
 				} else {
-					properties?.setAttribute("style", "display: block");
-					this.fileProperties.set(file!.name, true);
+					this.setDisplay(properties!, "display: block");
+					this.setFileProps(true);
+					this.unfoldProperties();
 				}
 			}
-			console.log(button.textContent)
 		}
 	}
 
 	private showElement() {
-		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
+		const active = this.checkActive();
 		const file = this.app.workspace.getActiveFile()?.name;
 		//@ts-ignore
 		const propertiesShown = this.app.vault.config.propertiesInDocument;
@@ -121,13 +158,22 @@ export default class PropertiesPlugin extends Plugin {
 			const properties = active!.contentEl.querySelector(
 				".metadata-container"
 			);
+			const collapsed = active!.contentEl.querySelector(
+				".metadata-container .is-collapsed"
+			);
 			if (
 				this.fileProperties.get(file) &&
 				propertiesShown === "visible"
 			) {
-				properties?.setAttribute("style", "display: block");
+				this.setDisplay(properties!, "display: block");
+				if (!collapsed) {
+					//@ts-ignore
+					this.app.commands.executeCommandById(
+						"editor:toggle-fold-properties"
+					);
+				}
 			} else {
-				properties?.setAttribute("style", "display: none");
+				this.setDisplay(properties!, "display: none");
 			}
 		}
 	}
@@ -141,8 +187,7 @@ export default class PropertiesPlugin extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
-				let active =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
+				let active = this.checkActive();
 				if (active) {
 					active.contentEl
 						.querySelector(".inline-title")
@@ -156,12 +201,12 @@ export default class PropertiesPlugin extends Plugin {
 										"afterbegin",
 										button
 									);
-								button.style.opacity = "1";
+								this.setOpacity(button, "1");
 								button.addEventListener("mouseenter", () => {
-									button.style.opacity = "1";
+									this.setOpacity(button, "1");
 								});
 								button.addEventListener("mouseleave", () => {
-									button.style.opacity = "0";
+									this.setOpacity(button, "0");
 								});
 							} else {
 								this.createElements();
@@ -185,17 +230,19 @@ export default class PropertiesPlugin extends Plugin {
 							const button =
 								document.getElementById("_propertiesButton");
 							if (button) {
-								button.style.opacity = "0";
+								this.setOpacity(button, "0");
 							}
 						});
 				}
 			})
 		);
+
 		this.registerEvent(
 			this.app.workspace.on("file-open", () => {
 				this.showElement();
 			})
 		);
+
 		this.registerEvent(
 			//@ts-ignore
 			this.app.vault.on("config-changed", () => {
@@ -219,6 +266,23 @@ export default class PropertiesPlugin extends Plugin {
 			})
 		);
 
+		this.registerEvent(
+			this.app.workspace.on("editor-change", () => {
+				const active =
+					this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (active) {
+					const properties = active.contentEl.querySelector(
+						".metadata-container"
+					);
+					if (
+						properties?.getAttribute("data-property-count") === "0"
+					) {
+						this.setDisplay(properties, "display: none");
+					}
+				}
+			})
+		);
+
 		this.addCommand({
 			id: "markdown:add-metadata-property",
 			name: "Add file property",
@@ -230,11 +294,22 @@ export default class PropertiesPlugin extends Plugin {
 					const properties = active.contentEl.querySelector(
 						".metadata-container"
 					);
-					if (getComputedStyle(properties!)?.display === "none") {
-						this.toggleProperties();
-					}
+
 					if (
+						getComputedStyle(properties!)?.display === "none" &&
 						properties?.getAttribute("data-property-count") !== "0"
+					) {
+						this.setDisplay(properties!, "display: block");
+						//@ts-ignore
+						this.app.commands.executeCommandById(
+							"markdown:add-metadata-property"
+						);
+					} else if (
+						getComputedStyle(properties!)?.display === "none"
+					) {
+						this.toggleProperties();
+					} else if (
+						getComputedStyle(properties!)?.display === "block"
 					) {
 						//@ts-ignore
 						this.app.commands.executeCommandById(
@@ -305,3 +380,16 @@ class PropertiesSettingsTab extends PluginSettingTab {
 			);
 	}
 }
+
+// (t.prototype.collapseProperties = function (e) {
+// 	this.metadataEditor.setCollapse(e, !1);
+// }),
+// 	(t.prototype.toggleCollapseProperties = function () {
+// 		var e;
+// 		"hidden" !== this.app.vault.getConfig("propertiesInDocument") &&
+// 		this.metadataEditor.containerEl.isShown()
+// 			? this.metadataEditor.toggleCollapse()
+// 			: null === (e = this.editMode) ||
+// 			  void 0 === e ||
+// 			  e.toggleFoldFrontmatter();
+// 	});
